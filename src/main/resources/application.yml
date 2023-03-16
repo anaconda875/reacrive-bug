@@ -1,0 +1,17 @@
+server:
+  port: 8886
+spring:
+  data:
+    mongodb:
+      port: 27017
+      database: vilya_be
+      host: localhost
+  liquibase:
+    change-log: classpath:/mongo/changelog-master.xml
+
+app:
+  jwt:
+    signingKey: MUFEQUI2NTcxPDUyRUNBNkA2QzI4QkFFNTk4XUQxNkQ=
+    accessTokenExpiration: 7d
+    issuer: https://vilya.com
+
