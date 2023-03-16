@@ -48,7 +48,7 @@ public class JWTSecurityConfig {
         .authenticationEntryPoint(entryPoint)
         .and()
         .authorizeRequests()
-        .antMatchers(USER_V1 + REGISTRATION, USER_V1 + SIGN_IN)
+        .antMatchers(USER_V1 + REGISTRATION, USER_V1 + SIGN_IN, "/farm/**")
         .permitAll()
         .anyRequest()
         .authenticated()
