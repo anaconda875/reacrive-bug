@@ -1,6 +1,9 @@
 server:
   port: 8886
 spring:
+  main:
+    web-application-type: reactive
+
   data:
     mongodb:
       port: 27017

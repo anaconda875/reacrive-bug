@@ -2,26 +2,25 @@ package com.vilya.farm.service.impl;
 
 import com.vilya.farm.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.userdetails.*;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class DefaultUserDetailsService implements UserDetailsService {
+public class DefaultUserDetailsService implements ReactiveUserDetailsService {
 
   private final UserRepository userRepository;
 
   @Override
-  public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+  public Mono<UserDetails> findByUsername(String username) {
     return userRepository
         .findByEmail(username)
         .map(u -> new User(username, u.getPassword(), List.of()))
-        .orElseThrow(() -> new UsernameNotFoundException(username));
+        .map(UserDetails.class::cast)
+        .switchIfEmpty(Mono.error(new UsernameNotFoundException(username)));
   }
 }
 

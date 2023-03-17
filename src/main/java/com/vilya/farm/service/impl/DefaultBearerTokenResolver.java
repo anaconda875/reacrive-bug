@@ -6,10 +6,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.server.ServerWebExchange;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.List;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,14 +18,13 @@ public class DefaultBearerTokenResolver implements BearerTokenResolver {
       Pattern.compile("^Bearer (?<token>[a-zA-Z0-9-._~+/]+=*)$", Pattern.CASE_INSENSITIVE);
 
   @Override
-  public String resolve(HttpServletRequest request) {
-    return resolveFrom(request.getHeader(HttpHeaders.AUTHORIZATION));
+  public String resolve(ServerHttpRequest request) {
+    return resolveFrom(request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION));
   }
 
   @Override
-  public String resolve(ServerHttpRequest request) {
-    List<String> values = Optional.ofNullable(request.getHeaders().get(HttpHeaders.AUTHORIZATION)).orElseGet(List::of);
-    return resolveFrom(values.size() > 0 ? values.get(0) : null);
+  public String resolve(ServerWebExchange exchange) {
+    return resolveFrom(exchange.getRequest().getHeaders().getFirst((HttpHeaders.AUTHORIZATION)));
   }
 
   private String resolveFrom(String authorization) {

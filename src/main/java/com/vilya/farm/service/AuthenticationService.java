@@ -2,8 +2,9 @@ package com.vilya.farm.service;
 
 import com.vilya.farm.dto.request.AuthenticationRequest;
 import com.vilya.farm.dto.response.TokenPayload;
+import reactor.core.publisher.Mono;
 
 public interface AuthenticationService {
 
-  TokenPayload authenticate(AuthenticationRequest request);
+  Mono<TokenPayload> authenticate(Mono<? extends AuthenticationRequest> request);
 }

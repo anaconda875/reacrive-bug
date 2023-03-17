@@ -9,10 +9,10 @@ import com.vilya.farm.service.AuthenticationService;
 import com.vilya.farm.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;
-
-import java.util.List;
 
 import static com.vilya.farm.constant.ApiConstant.*;
 
@@ -25,17 +25,18 @@ public class UserResource {
   private final AuthenticationService authenticationService;
 
   @PostMapping(REGISTRATION)
-  public RegistrationResponse register(@Valid @RequestBody RegistrationRequest request) {
+  public Mono<RegistrationResponse> register(
+      @Valid @RequestBody Mono<RegistrationRequest> request) {
     return userService.register(request);
   }
 
   @PostMapping(SIGN_IN)
-  public TokenPayload signIn(@RequestBody SignInRequest request) {
+  public Mono<TokenPayload> signIn(@RequestBody Mono<SignInRequest> request) {
     return authenticationService.authenticate(request);
   }
 
   @GetMapping
-  public List<User> findAll() {
+  public Flux<User> findAll() {
     return userService.findAll();
   }
 }
