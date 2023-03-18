@@ -7,6 +7,8 @@ import com.vilya.farm.dto.response.RegistrationResponse;
 import com.vilya.farm.dto.response.TokenPayload;
 import com.vilya.farm.service.AuthenticationService;
 import com.vilya.farm.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -36,6 +38,7 @@ public class UserResource {
   }
 
   @GetMapping
+  @Operation(security = {@SecurityRequirement(name = "bearer-key")})
   public Flux<User> findAll() {
     return userService.findAll();
   }

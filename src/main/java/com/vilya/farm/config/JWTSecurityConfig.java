@@ -30,7 +30,6 @@ import static com.vilya.farm.constant.ApiConstant.*;
 @EnableMethodSecurity(securedEnabled = true, jsr250Enabled = true)
 @RequiredArgsConstructor
 public class JWTSecurityConfig {
-
   private final ServerAuthenticationConverter authenticationConverter;
   private final ServerAuthenticationEntryPoint entryPoint;
 
