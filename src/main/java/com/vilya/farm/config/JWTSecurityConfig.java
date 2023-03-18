@@ -62,7 +62,7 @@ public class JWTSecurityConfig {
         .authenticationEntryPoint(entryPoint)
         .and()
         .authorizeExchange()
-        .pathMatchers(USER_V1 + REGISTRATION, USER_V1 + SIGN_IN, "/farm/**")
+        .pathMatchers(USER_V1 + REGISTRATION, USER_V1 + SIGN_IN, "/farm/**", "/v3/**")
         .permitAll()
         .anyExchange()
         .authenticated()

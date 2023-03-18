@@ -1,105 +1,50 @@
 package com.vilya.farm.config;
 
-import com.vilya.farm.service.BearerTokenResolver;
-import com.vilya.farm.service.TokenManager;
 import com.vilya.farm.web.socket.handler.UnicastSocketHandler;
+import com.vilya.farm.web.socket.service.CustomHandshakeWebSocketService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.server.ServerHttpRequest;
-import org.springframework.http.server.ServerHttpResponse;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.web.socket.WebSocketHandler;
-import org.springframework.web.socket.config.annotation.EnableWebSocket;
-import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
-import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
-import org.springframework.web.socket.server.HandshakeHandler;
-import org.springframework.web.socket.server.HandshakeInterceptor;
-import org.springframework.web.socket.server.standard.ServletServerContainerFactoryBean;
-import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
+import org.springframework.core.Ordered;
+import org.springframework.web.reactive.HandlerMapping;
+import org.springframework.web.reactive.handler.SimpleUrlHandlerMapping;
+import org.springframework.web.reactive.socket.WebSocketHandler;
+import org.springframework.web.reactive.socket.server.WebSocketService;
+import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAdapter;
+import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
 
-import java.security.Principal;
+import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-@EnableWebSocket
 @Slf4j
 @RequiredArgsConstructor
-public class WebSocketConfig implements WebSocketConfigurer {
+public class WebSocketConfig {
 
-  private final BearerTokenResolver tokenResolver;
-  private final TokenManager tokenManager;
-  private final UserDetailsService userDetailsService;
+  //  private final BearerTokenResolver tokenResolver;
+  //  private final TokenManager tokenManager;
+  //  private final UserDetailsService userDetailsService;
 
-  @Override
-  public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-    registry
-        .addHandler(new UnicastSocketHandler(), "/farm/{userId}")
-        .setAllowedOrigins("*")
-        .setHandshakeHandler(getHandshakeHandler())
-        .addInterceptors(getInterceptor());
-  }
+  @Bean
+  public HandlerMapping handlerMapping(UnicastSocketHandler unicastSocketHandler) {
+    Map<String, WebSocketHandler> map = new HashMap<>();
+    map.put("/farm/{userId}", unicastSocketHandler);
 
-  private HandshakeHandler getHandshakeHandler() {
-    return new DefaultHandshakeHandler() {
-      @Override
-      protected Principal determineUser(ServerHttpRequest request, WebSocketHandler wsHandler, Map<String, Object> attributes) {
-        String token = tokenResolver.resolve(request);
-        if(StringUtils.isBlank(token)) {
-          throw new BadCredentialsException("");
-        }
-        String username = tokenManager.parseClaims(token).getBody().getSubject();
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+    SimpleUrlHandlerMapping mapping = new SimpleUrlHandlerMapping();
+    mapping.setUrlMap(map);
+    mapping.setOrder(Ordered.HIGHEST_PRECEDENCE);
 
-        return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-      }
-    };
+    return mapping;
   }
 
   @Bean
-  public ServletServerContainerFactoryBean createServletServerContainerFactoryBean() {
-    ServletServerContainerFactoryBean container = new ServletServerContainerFactoryBean();
-    container.setMaxTextMessageBufferSize(32768);
-    container.setMaxBinaryMessageBufferSize(32768);
-    return container;
+  public WebSocketHandlerAdapter handlerAdapter(WebSocketService service) {
+    return new WebSocketHandlerAdapter(service);
   }
 
-  private HandshakeInterceptor getInterceptor() {
-    return new HandshakeInterceptor () {
-
-      @Override
-      public boolean beforeHandshake(
-          ServerHttpRequest serverHttpRequest,
-          ServerHttpResponse serverHttpResponse,
-          WebSocketHandler webSocketHandler,
-          Map<String, Object> map) {
-        String path = serverHttpRequest.getURI().getPath();
-        log.info("Start handshake in path: {}", path);
-        String[] arr = path.split("/");
-        try {
-          String id = arr[2];
-          log.info("User: {} handshake...", id);
-          map.put("userId", id);
-          return true;
-        } catch (Exception e) {
-          log.error(e.toString());
-          return false;
-        }
-      }
-
-      @Override
-      public void afterHandshake(
-          ServerHttpRequest request,
-          ServerHttpResponse response,
-          WebSocketHandler wsHandler,
-          Exception exception) {
-        log.info("{} handshake complete", request.getURI().getPath());
-      }
-    };
+  @Bean
+  public WebSocketService webSocketService() {
+    return new CustomHandshakeWebSocketService(new ReactorNettyRequestUpgradeStrategy());
   }
 }

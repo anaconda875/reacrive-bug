@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.Getter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.Key;
 import java.time.Duration;

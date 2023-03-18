@@ -1,31 +1,30 @@
 package com.vilya.farm.web.socket.handler;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vilya.farm.util.LambdaUtil;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
-import org.springframework.web.socket.handler.TextWebSocketHandler;
-
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.socket.WebSocketHandler;
+import org.springframework.web.reactive.socket.WebSocketMessage;
+import org.springframework.web.reactive.socket.WebSocketSession;
+import reactor.core.publisher.Mono;
 
 @Slf4j
-public class UnicastSocketHandler extends TextWebSocketHandler {
+@RequiredArgsConstructor
+@Component
+public class UnicastSocketHandler implements WebSocketHandler {
 
-  List<WebSocketSession> sessions = new CopyOnWriteArrayList<>();
-
-  @Override
-  public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-    /*for (WebSocketSession webSocketSession : sessions) {
-      if (webSocketSession.isOpen() && !session.getId().equals(webSocketSession.getId())) {
-        webSocketSession.sendMessage(message);
-      }
-    }*/
-    String senderId = (String) session.getAttributes().get("userId");
-    log.info("{} start send text message", senderId);
-  }
+  private final ObjectMapper objectMapper;
+  //  List<WebSocketSession> sessions = new CopyOnWriteArrayList<>();
 
   @Override
-  public void afterConnectionEstablished(WebSocketSession session) {
-    sessions.add(session);
+  public Mono<Void> handle(WebSocketSession session) {
+    return session
+        .receive()
+        .map(WebSocketMessage::getPayloadAsText)
+        .map(LambdaUtil.asSneakyThrowFunction(objectMapper::readTree))
+        .doOnNext(System.out::println)
+        .then();
   }
 }
