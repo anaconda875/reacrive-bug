@@ -16,6 +16,7 @@ app:
     signing-key: MUFEQUI2NTcxPDUyRUNBNkA2QzI4QkFFNTk4XUQxNkQ=
     access-token-expiration: 7d
     issuer: https://vilya.com
+
 springdoc:
   api-docs:
     path: /v3/swagger-ui.html
