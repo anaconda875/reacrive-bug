@@ -64,7 +64,8 @@ public class JWTSecurityConfig {
         .pathMatchers(USER_V1 + REGISTRATION, USER_V1 + SIGN_IN, "/farm/**", "/v3/**")
         .permitAll()
         .anyExchange()
-        .authenticated()
+//        .authenticated()
+        .permitAll()
         .and()
         .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
         .addFilterAt(

@@ -1,6 +1,24 @@
 server:
   port: 8886
 spring:
+  cloud:
+    function:
+      definition: ampAuthResponseChannel
+    stream:
+      default-binder: kafka
+      bindings:
+        ampAuthResponseChannel-in-0:
+          destination: topic.glcs.auth.response.${app.instance.id}
+          group: glcs-ampAuthResponseChannel-consumer-group.${app.instance.id}
+          consumer:
+            concurrency: 1
+      kafka:
+        bindings:
+          ampAuthResponseChannel-in-0:
+            consumer:
+              configuration:
+                key:
+                  deserializer: org.apache.kafka.common.serialization.StringDeserializer
   main:
     web-application-type: reactive
   data:
@@ -16,10 +34,13 @@ app:
     signing-key: MUFEQUI2NTcxPDUyRUNBNkA2QzI4QkFFNTk4XUQxNkQ=
     access-token-expiration: 7d
     issuer: https://vilya.com
+#  instance:
+#    id: ${random.uuid}
 
 springdoc:
   api-docs:
     path: /v3/swagger-ui.html
   swagger-ui:
     path: /v3/api-docs
+
 
