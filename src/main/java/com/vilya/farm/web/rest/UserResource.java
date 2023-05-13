@@ -52,9 +52,6 @@ public class UserResource {
     return userService.findAll();
   }
 
-  private static final Sinks.Many<Long> SINK = Sinks.many().multicast().onBackpressureBuffer();
-  private static final Flux<Long> FLUX = SINK.asFlux();
-  
   private static CountDownLatch countDownLatch = new CountDownLatch(1);
   
   @GetMapping("/mono")
@@ -66,37 +63,13 @@ public class UserResource {
   }
   
   private Mono<Object> doWork(Integer i) {
-    Mono<Object> mono = Mono.fromCallable(() -> {
+    return Mono.fromCallable(() -> {
       System.out.println(Thread.currentThread().getName());
       if (countDownLatch.await(i, TimeUnit.SECONDS)) {
         return i;
       }
       throw new RuntimeException("time exceeded");
     });
-    return mono.subscribeOn(Schedulers.parallel());
-  }
-  
-  @GetMapping("/flux")
-  public Flux<?> test() {
-    return FLUX.doOnNext(l -> System.out.println(Thread.currentThread().getName()))
-        /*.subscribeOn(Schedulers.boundedElastic())*/;
-  }
-  
-  @GetMapping("/emit/{s}")
-  public Mono<Void> emit(@PathVariable Long s) {
-    return Mono.fromRunnable(() -> {
-        try {
-          Thread.sleep(s * 1000);
-          SINK.tryEmitNext(s);
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-    });
-  }
-  
-  @GetMapping("/complete")
-  public Mono<Void> complete() {
-    return Mono.fromRunnable(SINK::tryEmitComplete);
   }
   
   @GetMapping("/mono/2")
@@ -108,9 +81,4 @@ public class UserResource {
         .flatMap(i -> mono.flatMap(b -> doWork(i)));
   }
   
-  @GetMapping("/count-down")
-  public Mono<Void> countDown() {
-    countDownLatch.countDown();
-    return Mono.empty();
-  }
 }
